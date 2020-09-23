@@ -7,8 +7,7 @@ using namespace std;
 
 class cfg_reader {
 public:
-  cfg_reader(const char* cfgName);
-
+  bool open(const char* cfgName);
   filter* readFilter();
   bool atEnd() const;
 

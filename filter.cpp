@@ -2,7 +2,8 @@
 #include <iostream>
 
 map<string, FilterType> filter_factory::s_nameRegister = {
-  {"BlackAndWhite", FilterType::BlackAndWhite}
+  {"BlackAndWhite", FilterType::BlackAndWhite},
+  {"Red", FilterType::Red},
 };
 
 
@@ -25,6 +26,7 @@ filter* filter_factory::createById(FilterType id, const rect& rect) {
     break;
 
   case FilterType::Red:
+    filter = new red_filter(rect);
     break;
 
   default:
@@ -72,6 +74,22 @@ void bw_filter::apply(const image_data& imageData) const {
     for (int j = scope.left(); j < scope.bottom(); j++) {
       int k = mapToImage(imageData, point(i, j));
       pixels[k] = pixels[k + 1] = pixels[k + 2] = calcIntensity(pixels + k);
+    }
+  }
+}
+
+red_filter::red_filter(const rect& rect) : filter(rect) {}
+
+void red_filter::apply(const image_data& imageData) const {
+  stbi_uc* pixels = imageData.pixels;
+
+  rect scope = calcScope(imageData);
+  for (int i = scope.left(); i < scope.right(); i++) {
+    for (int j = scope.left(); j < scope.bottom(); j++) {
+      int k = mapToImage(imageData, point(i, j));
+      pixels[k] = 255;
+      pixels[k + 1] = 0;
+      pixels[k + 2] = 0;
     }
   }
 }

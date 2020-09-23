@@ -11,7 +11,9 @@ int main( int argc, char *argv[] )
         if (argc != 4)
             throw "Not enough arguments";
 
-        cfg_reader reader(argv[1]);
+        cfg_reader reader;
+        if (!reader.open(argv[1]))
+            throw "File does not open";
 
         png_toolkit studTool;
         studTool.load(argv[2]);
@@ -22,6 +24,7 @@ int main( int argc, char *argv[] )
           if (filter) {
             filter->apply(studTool.getPixelData());
           }
+          free(filter);
         }
 
         studTool.save(argv[3]);

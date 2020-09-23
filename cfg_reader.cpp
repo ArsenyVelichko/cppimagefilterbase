@@ -1,8 +1,9 @@
 #include "cfg_reader.h"
 #include "geometry.h"
 
-cfg_reader::cfg_reader(const char* cfgName) {
+bool cfg_reader::open(const char* cfgName) {
   m_cfgFile = ifstream(cfgName);
+  return m_cfgFile.is_open();
 }
 
 filter* cfg_reader::readFilter() {

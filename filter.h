@@ -39,3 +39,10 @@ public:
 
   virtual void apply(const image_data& imageData) const override;
 };
+
+class red_filter : public filter {
+public:
+  red_filter(const rect& rect);
+
+  virtual void apply(const image_data& imageData) const override;
+};
