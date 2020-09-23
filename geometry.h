@@ -12,6 +12,11 @@ public:
   int x() const;
   int y() const;
 
+  point operator+=(const point& other);
+  point operator-=(const point& other);
+  point operator+(const point& other) const;
+  point operator-(const point& other) const;
+
   friend istream& operator>>(istream &in, point& point);
 
 private:
@@ -29,8 +34,17 @@ public:
   int right() const;
   int bottom() const;
 
+  point topLeft() const;
+  point bottomRight() const;
+
+  rect intersected(const rect& other) const;
+  rect translated(const point& offset) const;
+
   friend istream& operator>>(istream &in, rect &rect);
 
 private:
-  point m_min, m_max;
+  point m_topLeft, m_bottomRight;
 };
+
+point min(const point& a, const point& b);
+point max(const point& a, const point& b);

@@ -15,13 +15,13 @@ public:
 protected:
   rect calcScope(const image_data& imageData) const;
 
-private:
   rect m_rect;
 };
 
 enum class FilterType {
   BlackAndWhite,
   Red,
+  Threshold,
 };
 
 class filter_factory {
@@ -43,6 +43,13 @@ public:
 class red_filter : public filter {
 public:
   red_filter(const rect& rect);
+
+  virtual void apply(const image_data& imageData) const override;
+};
+
+class threshold_filter : public filter {
+public:
+  threshold_filter(const rect& rect);
 
   virtual void apply(const image_data& imageData) const override;
 };

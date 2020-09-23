@@ -1,9 +1,12 @@
 #include "filter.h"
 #include <iostream>
+#include <vector>
+#include <algorithm>
 
 map<string, FilterType> filter_factory::s_nameRegister = {
   {"BlackAndWhite", FilterType::BlackAndWhite},
   {"Red", FilterType::Red},
+  {"Threshold", FilterType::Threshold},
 };
 
 
@@ -27,6 +30,10 @@ filter* filter_factory::createById(FilterType id, const rect& rect) {
 
   case FilterType::Red:
     filter = new red_filter(rect);
+    break;
+
+  case FilterType::Threshold:
+    filter = new threshold_filter(rect);
     break;
 
   default:
@@ -71,7 +78,7 @@ void bw_filter::apply(const image_data& imageData) const {
 
   rect scope = calcScope(imageData);
   for (int i = scope.left(); i < scope.right(); i++) {
-    for (int j = scope.left(); j < scope.bottom(); j++) {
+    for (int j = scope.top(); j < scope.bottom(); j++) {
       int k = mapToImage(imageData, point(i, j));
       pixels[k] = pixels[k + 1] = pixels[k + 2] = calcIntensity(pixels + k);
     }
@@ -85,11 +92,62 @@ void red_filter::apply(const image_data& imageData) const {
 
   rect scope = calcScope(imageData);
   for (int i = scope.left(); i < scope.right(); i++) {
-    for (int j = scope.left(); j < scope.bottom(); j++) {
+    for (int j = scope.top(); j < scope.bottom(); j++) {
       int k = mapToImage(imageData, point(i, j));
       pixels[k] = 255;
       pixels[k + 1] = 0;
       pixels[k + 2] = 0;
+    }
+  }
+}
+
+threshold_filter::threshold_filter(const rect& rect) : filter(rect) {}
+
+static int calcIntensMedian(const image_data& imageData, const rect& rect) {
+  stbi_uc* pixels = imageData.pixels;
+
+  vector<int> intensityVec;
+  for (int i = rect.left(); i < rect.right(); i++) {
+    for (int j = rect.top(); j < rect.bottom(); j++) {
+      int k = mapToImage(imageData, point(i, j));
+      int intensity = calcIntensity(pixels + k);
+      intensityVec.push_back(intensity);
+    }
+  }
+
+  sort(intensityVec.begin(), intensityVec.end());
+
+  size_t size = intensityVec.size();
+  size_t halfSize = size / 2;
+  if (size % 2 == 0) {
+    return (intensityVec[halfSize - 1] + intensityVec[halfSize]) / 2;
+
+  } else {
+    return intensityVec[halfSize];
+  }
+}
+
+void threshold_filter::apply(const image_data& imageData) const {
+  bw_filter bwFilter(m_rect);
+  bwFilter.apply(imageData);
+
+  stbi_uc* pixels = imageData.pixels;
+
+  rect scope = calcScope(imageData);
+  rect intensRect(-2, -2, 2, 2);
+  for (int i = scope.left(); i < scope.right(); i++) {
+    for (int j = scope.top(); j < scope.bottom(); j++) {
+      point center = point(i, j);
+      rect currRect = intensRect.translated(center);
+      currRect = currRect.intersected(scope);
+
+      int k = mapToImage(imageData, point(i, j));
+      int intensity = calcIntensity(pixels + k);
+      int median = calcIntensMedian(imageData, currRect);
+      
+      if (intensity < median) {
+        pixels[k] = pixels[k + 1] = pixels[k + 2] = 0;
+      }
     }
   }
 }
