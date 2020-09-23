@@ -19,7 +19,7 @@ int point::y() const {
 }
 
 istream& operator>>(istream &in, point& point) {
-  in >> point.m_x >> point.m_y;
+  in >> point.m_y >> point.m_x;
   return in;
 }
 
