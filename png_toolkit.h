@@ -2,8 +2,6 @@
 #define PNG_TOOLKIT_H
 
 #include <string>
-#include <map>
-//#include <memory>
 #include "stb_image.h"
 
 struct image_data
@@ -29,7 +27,7 @@ public:
     image_data getPixelData( void ) const;
 
 private:
-    image_data imgData;
+    image_data m_imgData;
 };
 
 #endif // PNG_TOOLKIT_H

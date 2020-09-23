@@ -1,5 +1,6 @@
 #include <iostream>
 #include "png_toolkit.h"
+#include "cfg_reader.h"
 
 int main( int argc, char *argv[] )
 {
@@ -7,12 +8,23 @@ int main( int argc, char *argv[] )
     // toolkit near test images!
     try
     {
-        if (argc != 3)
+        if (argc != 4)
             throw "Not enough arguments";
 
+        cfg_reader reader(argv[1]);
+
         png_toolkit studTool;
-        studTool.load(argv[1]);
-        studTool.save(argv[2]);
+        studTool.load(argv[2]);
+
+        while (!reader.atEnd()) {
+          filter* filter = reader.readFilter();
+
+          if (filter) {
+            filter->apply(studTool.getPixelData());
+          }
+        }
+
+        studTool.save(argv[3]);
 
     }
     catch (const char *str)
