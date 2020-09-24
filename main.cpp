@@ -24,7 +24,7 @@ int main( int argc, char *argv[] )
           if (filter) {
             filter->apply(studTool.getPixelData());
           }
-          free(filter);
+          delete filter;
         }
 
         studTool.save(argv[3]);
