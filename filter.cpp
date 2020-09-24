@@ -128,21 +128,12 @@ static int calcIntensMedian(const image_data& imageData, const rect& rect) {
 }
 
 void threshold_filter::apply(const image_data& imageData) const {
-  bw_filter bwFilter(m_rect);
+  rect fullRect(0, 0, 1, 1);
+  bw_filter bwFilter(fullRect);
   bwFilter.apply(imageData);
-
   stbi_uc* pixels = imageData.pixels;
-  size_t sizeInBytes = imageData.h * imageData.w * imageData.compPerPixel;
-  stbi_uc* bufPixels = new stbi_uc[sizeInBytes];
-  memcpy(bufPixels, imageData.pixels, sizeInBytes);
 
-  image_data bufData;
-  bufData.pixels = bufPixels;
-  bufData.compPerPixel = imageData.compPerPixel;
-  bufData.w = imageData.w;
-  bufData.h = imageData.h;
-
-  rect scope = calcScope(bufData);
+  rect scope = calcScope(imageData);
   rect intensRect(-2, -2, 2, 2);
   for (int i = scope.left(); i < scope.right(); i++) {
     for (int j = scope.top(); j < scope.bottom(); j++) {
@@ -150,14 +141,13 @@ void threshold_filter::apply(const image_data& imageData) const {
       rect currRect = intensRect.translated(center);
       currRect = currRect.intersected(scope);
 
-      int k = mapToImage(bufData, point(i, j));
-      int intensity = calcIntensity(bufPixels + k);
-      int median = calcIntensMedian(bufData, currRect);
+      int k = mapToImage(imageData, point(i, j));
+      int intensity = calcIntensity(pixels + k);
+      int median = calcIntensMedian(imageData, currRect);
       
       if (intensity < median) {
         pixels[k] = pixels[k + 1] = pixels[k + 2] = 0;
       }
     }
   }
-  delete[] bufPixels;
 }
