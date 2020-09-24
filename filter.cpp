@@ -151,7 +151,7 @@ void threshold_filter::apply(const image_data& imageData) const {
       currRect = currRect.intersected(scope);
 
       int k = mapToImage(bufData, point(i, j));
-      int intensity = calcIntensity(pixels + k);
+      int intensity = calcIntensity(bufPixels + k);
       int median = calcIntensMedian(bufData, currRect);
       
       if (intensity < median) {
