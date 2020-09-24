@@ -159,5 +159,5 @@ void threshold_filter::apply(const image_data& imageData) const {
       }
     }
   }
-  free(bufPixels);
+  delete[] bufPixels;
 }
