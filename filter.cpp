@@ -135,6 +135,7 @@ void threshold_filter::apply(const image_data& imageData) const {
 
   rect scope = calcScope(imageData);
   rect intensRect(-2, -2, 2, 2);
+  vector<int> zeroedPixels;
   for (int i = scope.left(); i < scope.right(); i++) {
     for (int j = scope.top(); j < scope.bottom(); j++) {
       point center = point(i, j);
@@ -146,8 +147,12 @@ void threshold_filter::apply(const image_data& imageData) const {
       int median = calcIntensMedian(imageData, currRect);
 
       if (intensity < median) {
-        pixels[k] = pixels[k + 1] = pixels[k + 2] = 0;
+        zeroedPixels.push_back(k);
       }
     }
+  }
+
+  for (int i : zeroedPixels) {
+    pixels[i] = pixels[i + 1] = pixels[i + 2] = 0;
   }
 }
