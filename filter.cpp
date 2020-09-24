@@ -59,7 +59,7 @@ rect filter::calcScope(const image_data& imageData) const {
   return rect(left, top, right, bottom);
 }
 
-static int mapToImage(const image_data& imageData, const point& point){
+static int mapToImage(const image_data& imageData, const point& point) {
   int pixelIndex = point.y() * imageData.w + point.x();
   return pixelIndex * imageData.compPerPixel;
 }
@@ -128,9 +128,9 @@ static int calcIntensMedian(const image_data& imageData, const rect& rect) {
 }
 
 void threshold_filter::apply(const image_data& imageData) const {
-  rect fullRect(0, 0, 1, 1);
-  bw_filter bwFilter(fullRect);
+  bw_filter bwFilter(m_rect);
   bwFilter.apply(imageData);
+
   stbi_uc* pixels = imageData.pixels;
 
   rect scope = calcScope(imageData);
@@ -144,7 +144,7 @@ void threshold_filter::apply(const image_data& imageData) const {
       int k = mapToImage(imageData, point(i, j));
       int intensity = calcIntensity(pixels + k);
       int median = calcIntensMedian(imageData, currRect);
-      
+
       if (intensity < median) {
         pixels[k] = pixels[k + 1] = pixels[k + 2] = 0;
       }
