@@ -106,24 +106,24 @@ threshold_filter::threshold_filter(const rect& rect) : filter(rect) {}
 static int calcIntensMedian(const image_data& imageData, const rect& rect) {
   stbi_uc* pixels = imageData.pixels;
 
-  vector<int> intensityVec;
+  vector<int> intensVec;
   for (int i = rect.left(); i < rect.right(); i++) {
     for (int j = rect.top(); j < rect.bottom(); j++) {
       int k = mapToImage(imageData, point(i, j));
-      int intensity = calcIntensity(pixels + k);
-      intensityVec.push_back(intensity);
+      intensVec.push_back(pixels[k]);
     }
   }
 
-  sort(intensityVec.begin(), intensityVec.end());
-
-  size_t size = intensityVec.size();
+  size_t size = intensVec.size();
   size_t halfSize = size / 2;
+  nth_element(intensVec.begin(), intensVec.begin() + halfSize, intensVec.end());
+
   if (size % 2 == 0) {
-    return (intensityVec[halfSize - 1] + intensityVec[halfSize]) / 2;
+    nth_element(intensVec.begin(), intensVec.begin() + halfSize - 1, intensVec.end());
+    return (intensVec[halfSize - 1] + intensVec[halfSize]) / 2;
 
   } else {
-    return intensityVec[halfSize];
+    return intensVec[halfSize];
   }
 }
 
@@ -142,11 +142,10 @@ void threshold_filter::apply(const image_data& imageData) const {
       rect currRect = intensRect.translated(center);
       currRect = currRect.intersected(scope);
 
-      int k = mapToImage(imageData, point(i, j));
-      int intensity = calcIntensity(pixels + k);
       int median = calcIntensMedian(imageData, currRect);
 
-      if (intensity < median) {
+      int k = mapToImage(imageData, center);
+      if (pixels[k] < median) {
         zeroedPixels.push_back(k);
       }
     }
