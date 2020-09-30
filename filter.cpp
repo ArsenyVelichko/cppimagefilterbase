@@ -115,7 +115,7 @@ static stbi_uc calcIntensMedian(const image_data& imageData, const rect& rect) {
   }
 
   size_t halfSize = intensVec.size() / 2;
-  sort(intensVec.begin(), intensVec.end());
+  nth_element(intensVec.begin(), intensVec.begin() + halfSize, intensVec.end());
 
   return intensVec[halfSize];
 }
