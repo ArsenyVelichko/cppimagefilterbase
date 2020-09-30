@@ -117,12 +117,7 @@ static stbi_uc calcIntensMedian(const image_data& imageData, const rect& rect) {
   size_t halfSize = intensVec.size() / 2;
   sort(intensVec.begin(), intensVec.end());
 
-  if (intensVec.size() % 2 == 0) {
-    return (intensVec[halfSize - 1] + intensVec[halfSize]) / 2;
-
-  } else {
-    return intensVec[halfSize];
-  }
+  return intensVec[halfSize];
 }
 
 void threshold_filter::apply(const image_data& imageData) const {
