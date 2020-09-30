@@ -133,7 +133,7 @@ void threshold_filter::apply(const image_data& imageData) const {
   stbi_uc* pixels = imageData.pixels;
 
   rect scope = calcScope(imageData);
-  rect intensRect(-2, -2, 2, 2);
+  rect intensRect(-2, -2, 3, 3);
   vector<int> zeroedPixels;
   for (int i = scope.left(); i < scope.right(); i++) {
     for (int j = scope.top(); j < scope.bottom(); j++) {
