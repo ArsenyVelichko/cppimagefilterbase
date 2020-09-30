@@ -103,10 +103,10 @@ void red_filter::apply(const image_data& imageData) const {
 
 threshold_filter::threshold_filter(const rect& rect) : filter(rect) {}
 
-static int calcIntensMedian(const image_data& imageData, const rect& rect) {
+static stbi_uc calcIntensMedian(const image_data& imageData, const rect& rect) {
   stbi_uc* pixels = imageData.pixels;
 
-  vector<int> intensVec;
+  vector<stbi_uc> intensVec;
   for (int i = rect.left(); i < rect.right(); i++) {
     for (int j = rect.top(); j < rect.bottom(); j++) {
       int k = mapToImage(imageData, point(i, j));
@@ -114,11 +114,10 @@ static int calcIntensMedian(const image_data& imageData, const rect& rect) {
     }
   }
 
-  size_t size = intensVec.size();
-  size_t halfSize = size / 2;
+  size_t halfSize = intensVec.size() / 2;
   nth_element(intensVec.begin(), intensVec.begin() + halfSize, intensVec.end());
 
-  if (size % 2 == 0) {
+  if (intensVec.size() % 2 == 0) {
     nth_element(intensVec.begin(), intensVec.begin() + halfSize - 1, intensVec.end());
     return (intensVec[halfSize - 1] + intensVec[halfSize]) / 2;
 
@@ -142,7 +141,7 @@ void threshold_filter::apply(const image_data& imageData) const {
       rect currRect = intensRect.translated(center);
       currRect = currRect.intersected(scope);
 
-      int median = calcIntensMedian(imageData, currRect);
+      stbi_uc median = calcIntensMedian(imageData, currRect);
 
       int k = mapToImage(imageData, center);
       if (pixels[k] < median) {
