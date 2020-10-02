@@ -185,7 +185,7 @@ static void pastePixels(const image_data& dst, const image_data& src, const poin
   for (int i = 0; i < src.w; i++) {
     for (int j = 0; j < src.h; j++) {
       point currPos = point(i, j);
-      int k1 = mapToImage(dst, currPos);
+      int k1 = mapToImage(src, currPos);
       int k2 = mapToImage(dst, currPos + topLeft);
 
       dst.pixels[k2] = src.pixels[k1];
@@ -224,7 +224,7 @@ void convolut_filter::apply(const image_data& imageData) const {
     }
   }
   
-  //pastePixels(imageData, bufData, scope.topLeft());
+  pastePixels(imageData, bufData, scope.topLeft());
   delete[] bufData.pixels;
 }
 
