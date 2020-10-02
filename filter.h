@@ -64,6 +64,7 @@ public:
   void apply(const image_data& imageData) const override;
 
   virtual vector<vector<int>> getKernel() const = 0;
+  virtual int getWeightSum() const = 0;
 
 private:
   vector<stbi_uc> calcConvolut(const image_data& imageData,
@@ -77,6 +78,7 @@ public:
 
   void apply(const image_data& imageData) const override;
   vector<vector<int>> getKernel() const override;
+  int getWeightSum() const override;
 };
 
 class blur_filter : public convolut_filter {
@@ -84,4 +86,5 @@ public:
   blur_filter(const rect& rect);
 
   vector<vector<int>> getKernel() const override;
+  int getWeightSum() const override;
 };

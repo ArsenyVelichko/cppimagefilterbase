@@ -160,20 +160,10 @@ void threshold_filter::apply(const image_data& imageData) const {
 
 convolut_filter::convolut_filter(const rect& rect) : filter(rect) {}
 
-static int calcKernelSum(const vector<vector<int>>& kernel) {
-  int weightSum = 0;
-  for (int i = 0; i < kernel.size(); i++) {
-    for (int j = 0; j < kernel[0].size(); j++) {
-      weightSum += kernel[i][j];
-    }
-  }
-  return weightSum;
-}
-
 vector<stbi_uc> convolut_filter::calcConvolut(const image_data& imageData, 
                                               const point& kernelPos, const rect& rect) const {
   vector<vector<int>> kernel = getKernel();
-  int weightSum = calcKernelSum(kernel);
+  int weightSum = getWeightSum();
 
   vector<stbi_uc> convolutVec(3);
   for (int color = 0; color < 3; color++) {
@@ -252,6 +242,10 @@ vector<vector<int>> edge_filter::getKernel() const {
   return kernel;
 }
 
+int edge_filter::getWeightSum() const {
+  return 1;
+}
+
 void edge_filter::apply(const image_data& imageData) const {
   bw_filter bwFilter(m_rect);
   bwFilter.apply(imageData);
@@ -268,4 +262,8 @@ vector<vector<int>> blur_filter::getKernel() const {
     {1, 1, 1},
   };
   return kernel;
+}
+
+int blur_filter::getWeightSum() const {
+  return 9;
 }
