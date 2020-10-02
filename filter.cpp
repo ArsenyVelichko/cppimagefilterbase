@@ -162,26 +162,23 @@ convolut_filter::convolut_filter(const rect& rect) : filter(rect) {}
 
 static vector<stbi_uc> calcConvolut(const image_data& imageData, const vector<vector<int>>& kernel,
                                     const point& kernelPos, const rect& rect) {
-  vector<stbi_uc> convolutVec(3);
+  vector<int> convolutInt(3);
   for (int color = 0; color < 3; color++) {
-
-    int convolut = 0;
-    int weightSum = 0;
     for (int i = rect.left(); i < rect.right(); i++) {
       for (int j = rect.top(); j < rect.bottom(); j++) {
         int k = mapToImage(imageData, point(i, j));
         int weight = kernel[i - kernelPos.x()][j - kernelPos.y()];
-
-        weightSum += weight;
-        convolut += imageData.pixels[k + color] * weight;
+        convolutInt[color] += imageData.pixels[k + color] * weight;
       }
     }
-    
-    convolut /= weightSum;
-    convolutVec[color] = stbi_uc(clamp(convolut, 0, 255));
+    convolutInt[color] = clamp(convolutInt[color], 0, 255);
   }
 
-  return convolutVec;
+  vector<stbi_uc> convolutUc(3);
+  for (int i = 0; i < 3; i++) {
+    convolutUc[i] = stbi_uc(convolutInt[i]);
+  }
+  return convolutUc;
 }
 
 static void pastePixels(const image_data& dst, const image_data& src, const point& topLeft) {
@@ -210,7 +207,7 @@ void convolut_filter::apply(const image_data& imageData) const {
   bufData.h = scope.height();
   bufData.compPerPixel = imageData.compPerPixel;
   bufData.pixels = new stbi_uc[bufData.w * bufData.h * bufData.compPerPixel];
-  
+
   for (int i = scope.left(); i < scope.right(); i++) {
     for (int j = scope.top(); j < scope.bottom(); j++) {
       point currPos = point(i, j);
@@ -226,7 +223,7 @@ void convolut_filter::apply(const image_data& imageData) const {
       bufData.pixels[k + 2] = convolut[2];
     }
   }
-  
+
   pastePixels(imageData, bufData, scope.topLeft());
   delete[] bufData.pixels;
 }
