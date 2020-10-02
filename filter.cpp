@@ -207,7 +207,7 @@ void convolut_filter::apply(const image_data& imageData) const {
   bufData.h = scope.height();
   bufData.compPerPixel = imageData.compPerPixel;
   bufData.pixels = new stbi_uc[bufData.w * bufData.h * bufData.compPerPixel];
-
+  
   for (int i = scope.left(); i < scope.right(); i++) {
     for (int j = scope.top(); j < scope.bottom(); j++) {
       point currPos = point(i, j);
@@ -223,8 +223,8 @@ void convolut_filter::apply(const image_data& imageData) const {
       bufData.pixels[k + 2] = convolut[2];
     }
   }
-
-  pastePixels(imageData, bufData, scope.topLeft());
+  
+  //pastePixels(imageData, bufData, scope.topLeft());
   delete[] bufData.pixels;
 }
 
