@@ -228,7 +228,7 @@ void convolut_filter::apply(const image_data& imageData) const {
       currRect = currRect.intersected(scope);
 
       point kernelPos = currPos - point(halfW, halfH);
-      vector<stbi_uc> convolut = calcConvolut(imageData, kernel, kernelPos, currRect);
+      vector<stbi_uc> convolut = calcConvolut(imageData, kernelPos, currRect);
 
       int k = mapToImage(bufData, currPos - scope.topLeft());
       bufData.pixels[k] = convolut[0];
