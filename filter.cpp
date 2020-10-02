@@ -160,17 +160,17 @@ void threshold_filter::apply(const image_data& imageData) const {
 
 convolut_filter::convolut_filter(const rect& rect) : filter(rect) {}
 
-static vector<stbi_uc> calcConvolut(const image_data& imageData, const vector<vector<double>>& kernel,
+static vector<stbi_uc> calcConvolut(const image_data& imageData, const vector<vector<int>>& kernel,
                                     const point& kernelPos, const rect& rect) {
   vector<stbi_uc> convolutVec(3);
   for (int color = 0; color < 3; color++) {
 
-    double convolut = 0;
-    double weightSum = 0;
+    int convolut = 0;
+    int weightSum = 0;
     for (int i = rect.left(); i < rect.right(); i++) {
       for (int j = rect.top(); j < rect.bottom(); j++) {
         int k = mapToImage(imageData, point(i, j));
-        double weight = kernel[i - kernelPos.x()][j - kernelPos.y()];
+        int weight = kernel[i - kernelPos.x()][j - kernelPos.y()];
 
         weightSum += weight;
         convolut += imageData.pixels[k + color] * weight;
@@ -178,7 +178,7 @@ static vector<stbi_uc> calcConvolut(const image_data& imageData, const vector<ve
     }
     
     convolut /= weightSum;
-    convolutVec[color] = stbi_uc(clamp(int(convolut), 0, 255));
+    convolutVec[color] = stbi_uc(clamp(convolut, 0, 255));
   }
 
   return convolutVec;
@@ -199,7 +199,7 @@ static void pastePixels(const image_data& dst, const image_data& src, const poin
 }
 
 void convolut_filter::apply(const image_data& imageData) const {
-  vector<vector<double>> kernel = getKernel();
+  vector<vector<int>> kernel = getKernel();
   int halfW = kernel[0].size() / 2;
   int halfH = kernel.size() / 2;
   rect kernelRect(-halfW, -halfH, halfW + 1, halfH + 1);
@@ -233,8 +233,8 @@ void convolut_filter::apply(const image_data& imageData) const {
 
 edge_filter::edge_filter(const rect& rect) : convolut_filter(rect) {}
 
-vector<vector<double>> edge_filter::getKernel() const {
-  vector<vector<double>> kernel = {
+vector<vector<int>> edge_filter::getKernel() const {
+  vector<vector<int>> kernel = {
     {-1, -1, -1},
     {-1, 9, -1},
     {-1, -1, -1},
@@ -251,8 +251,8 @@ void edge_filter::apply(const image_data& imageData) const {
 
 blur_filter::blur_filter(const rect& rect) : convolut_filter(rect) {}
 
-vector<vector<double>> blur_filter::getKernel() const {
-  vector<vector<double>> kernel = {
+vector<vector<int>> blur_filter::getKernel() const {
+  vector<vector<int>> kernel = {
     {1, 1, 1},
     {1, 1, 1},
     {1, 1, 1},

@@ -62,7 +62,7 @@ public:
   convolut_filter(const rect& rect);
 
   void apply(const image_data& imageData) const override;
-  virtual vector<vector<double>> getKernel() const = 0;
+  virtual vector<vector<int>> getKernel() const = 0;
 };
 
 class edge_filter : public convolut_filter {
@@ -70,12 +70,12 @@ public:
   edge_filter(const rect& rect);
 
   void apply(const image_data& imageData) const override;
-  vector<vector<double>> getKernel() const override;
+  vector<vector<int>> getKernel() const override;
 };
 
 class blur_filter : public convolut_filter {
 public:
   blur_filter(const rect& rect);
 
-  vector<vector<double>> getKernel() const override;
+  vector<vector<int>> getKernel() const override;
 };
