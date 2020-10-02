@@ -160,25 +160,38 @@ void threshold_filter::apply(const image_data& imageData) const {
 
 convolut_filter::convolut_filter(const rect& rect) : filter(rect) {}
 
-static vector<stbi_uc> calcConvolut(const image_data& imageData, const vector<vector<int>>& kernel,
-                                    const point& kernelPos, const rect& rect) {
-  vector<int> convolutInt(3);
+static int calcKernelSum(const vector<vector<int>>& kernel) {
+  int weightSum = 0;
+  for (int i = 0; i < kernel.size(); i++) {
+    for (int j = 0; j < kernel[0].size(); j++) {
+      weightSum += kernel[i][j];
+    }
+  }
+  return weightSum;
+}
+
+vector<stbi_uc> convolut_filter::calcConvolut(const image_data& imageData, 
+                                              const point& kernelPos, const rect& rect) const {
+  vector<vector<int>> kernel = getKernel();
+  int weightSum = calcKernelSum(kernel);
+
+  vector<stbi_uc> convolutVec(3);
   for (int color = 0; color < 3; color++) {
+
+    int convolut = 0;
     for (int i = rect.left(); i < rect.right(); i++) {
       for (int j = rect.top(); j < rect.bottom(); j++) {
         int k = mapToImage(imageData, point(i, j));
         int weight = kernel[i - kernelPos.x()][j - kernelPos.y()];
-        convolutInt[color] += imageData.pixels[k + color] * weight;
+        convolut += imageData.pixels[k + color] * weight;
       }
     }
-    convolutInt[color] = clamp(convolutInt[color], 0, 255);
+
+    convolut /= weightSum;
+    convolutVec[color] = stbi_uc(clamp(convolut, 0, 255));
   }
 
-  vector<stbi_uc> convolutUc(3);
-  for (int i = 0; i < 3; i++) {
-    convolutUc[i] = stbi_uc(convolutInt[i]);
-  }
-  return convolutUc;
+  return convolutVec;
 }
 
 static void pastePixels(const image_data& dst, const image_data& src, const point& topLeft) {
@@ -207,7 +220,7 @@ void convolut_filter::apply(const image_data& imageData) const {
   bufData.h = scope.height();
   bufData.compPerPixel = imageData.compPerPixel;
   bufData.pixels = new stbi_uc[bufData.w * bufData.h * bufData.compPerPixel];
-
+  
   for (int i = scope.left(); i < scope.right(); i++) {
     for (int j = scope.top(); j < scope.bottom(); j++) {
       point currPos = point(i, j);
@@ -223,7 +236,7 @@ void convolut_filter::apply(const image_data& imageData) const {
       bufData.pixels[k + 2] = convolut[2];
     }
   }
-
+  
   pastePixels(imageData, bufData, scope.topLeft());
   delete[] bufData.pixels;
 }
