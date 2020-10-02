@@ -62,7 +62,13 @@ public:
   convolut_filter(const rect& rect);
 
   void apply(const image_data& imageData) const override;
+
   virtual vector<vector<int>> getKernel() const = 0;
+
+private:
+  vector<stbi_uc> calcConvolut(const image_data& imageData,
+                               const point& kernelPos,
+                               const rect& rect) const;
 };
 
 class edge_filter : public convolut_filter {
