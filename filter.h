@@ -3,6 +3,7 @@
 #include "png_toolkit.h"
 #include "geometry.h"
 #include <map>
+#include <vector>
 
 using namespace std;
 
@@ -22,6 +23,8 @@ enum class FilterType {
   BlackAndWhite,
   Red,
   Threshold,
+  Edge,
+  Blur,
 };
 
 class filter_factory {
@@ -37,19 +40,42 @@ class bw_filter : public filter {
 public:
   bw_filter(const rect& rect);
 
-  virtual void apply(const image_data& imageData) const override;
+  void apply(const image_data& imageData) const override;
 };
 
 class red_filter : public filter {
 public:
   red_filter(const rect& rect);
 
-  virtual void apply(const image_data& imageData) const override;
+  void apply(const image_data& imageData) const override;
 };
 
 class threshold_filter : public filter {
 public:
   threshold_filter(const rect& rect);
 
-  virtual void apply(const image_data& imageData) const override;
+  void apply(const image_data& imageData) const override;
+};
+
+class convolut_filter : public filter {
+public:
+  convolut_filter(const rect& rect);
+
+  void apply(const image_data& imageData) const override;
+  virtual vector<vector<int>> getKernel() const = 0;
+};
+
+class edge_filter : public convolut_filter {
+public:
+  edge_filter(const rect& rect);
+
+  void apply(const image_data& imageData) const override;
+  vector<vector<int>> getKernel() const override;
+};
+
+class blur_filter : public convolut_filter {
+public:
+  blur_filter(const rect& rect);
+
+  vector<vector<int>> getKernel() const override;
 };

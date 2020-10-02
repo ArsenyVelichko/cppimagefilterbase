@@ -34,6 +34,9 @@ public:
   int right() const;
   int bottom() const;
 
+  size_t width() const;
+  size_t height() const;
+
   point topLeft() const;
   point bottomRight() const;
 
@@ -48,3 +51,8 @@ private:
 
 point min(const point& a, const point& b);
 point max(const point& a, const point& b);
+
+template<class T>
+constexpr const T& clamp(const T& v, const T& lo, const T& hi) {
+  return (v < lo) ? lo : (hi < v) ? hi : v;
+}

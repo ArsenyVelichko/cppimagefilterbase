@@ -1,12 +1,13 @@
 #include "filter.h"
 #include <iostream>
-#include <vector>
 #include <algorithm>
 
 map<string, FilterType> filter_factory::s_nameRegister = {
   {"BlackAndWhite", FilterType::BlackAndWhite},
   {"Red", FilterType::Red},
   {"Threshold", FilterType::Threshold},
+  {"Edge", FilterType::Edge},
+  {"Blur", FilterType::Blur},
 };
 
 
@@ -34,6 +35,14 @@ filter* filter_factory::createById(FilterType id, const rect& rect) {
 
   case FilterType::Threshold:
     filter = new threshold_filter(rect);
+    break;
+
+  case FilterType::Edge:
+    filter = new edge_filter(rect);
+    break;
+
+  case FilterType::Blur:
+    filter = new blur_filter(rect);
     break;
 
   default:
@@ -147,4 +156,103 @@ void threshold_filter::apply(const image_data& imageData) const {
   for (int i : zeroedPixels) {
     pixels[i] = pixels[i + 1] = pixels[i + 2] = 0;
   }
+}
+
+convolut_filter::convolut_filter(const rect& rect) : filter(rect) {}
+
+static vector<stbi_uc> calcConvolut(const image_data& imageData, const vector<vector<int>>& kernel,
+                                    const point& kernelPos, const rect& rect) {
+  vector<int> convolutInt(3);
+  for (int color = 0; color < 3; color++) {
+    for (int i = rect.left(); i < rect.right(); i++) {
+      for (int j = rect.top(); j < rect.bottom(); j++) {
+        int k = mapToImage(imageData, point(i, j));
+        int weight = kernel[i - kernelPos.x()][j - kernelPos.y()];
+        convolutInt[color] += imageData.pixels[k + color] * weight;
+      }
+    }
+    convolutInt[color] = clamp(convolutInt[color], 0, 255);
+  }
+
+  vector<stbi_uc> convolutUc(3);
+  for (int i = 0; i < 3; i++) {
+    convolutUc[i] = stbi_uc(convolutInt[i]);
+  } 
+  return convolutUc;
+}
+
+static void pastePixels(const image_data& dst, const image_data& src, const point& topLeft) {
+  for (int i = 0; i < src.w; i++) {
+    for (int j = 0; j < src.h; j++) {
+      point currPos = point(i, j);
+      int k1 = mapToImage(dst, currPos);
+      int k2 = mapToImage(dst, currPos + topLeft);
+
+      dst.pixels[k2] = src.pixels[k1];
+      dst.pixels[k2 + 1] = src.pixels[k1 + 1];
+      dst.pixels[k2 + 2] = src.pixels[k1 + 2];
+    }
+  }
+}
+
+void convolut_filter::apply(const image_data& imageData) const {
+  vector<vector<int>> kernel = getKernel();
+  int halfW = kernel[0].size() / 2;
+  int halfH = kernel.size() / 2;
+  rect kernelRect(-halfW, -halfH, halfW + 1, halfH + 1);
+
+  rect scope = calcScope(imageData);
+  image_data bufData;
+  bufData.w = scope.width();
+  bufData.h = scope.height();
+  bufData.compPerPixel = imageData.compPerPixel;
+  bufData.pixels = new stbi_uc[bufData.w * bufData.h * bufData.compPerPixel];
+
+  for (int i = scope.left(); i < scope.right(); i++) {
+    for (int j = scope.top(); j < scope.bottom(); j++) {
+      point currPos = point(i, j);
+      rect currRect = kernelRect.translated(currPos);
+      currRect = currRect.intersected(scope);
+
+      point kernelPos = currPos - point(halfW, halfH);
+      vector<stbi_uc> convolut = calcConvolut(imageData, kernel, kernelPos, currRect);
+
+      int k = mapToImage(bufData, currPos - scope.topLeft());
+      bufData.pixels[k] = convolut[0];
+      bufData.pixels[k + 1] = convolut[1];
+      bufData.pixels[k + 2] = convolut[2];
+    }
+  }
+
+  pastePixels(imageData, bufData, scope.topLeft());
+  delete bufData.pixels;
+}
+
+edge_filter::edge_filter(const rect& rect) : convolut_filter(rect) {}
+
+vector<vector<int>> edge_filter::getKernel() const {
+  vector<vector<int>> kernel = {
+    {-1, -1, -1},
+    {-1, 9, -1},
+    {-1, -1, -1},
+  };
+  return kernel;
+}
+
+void edge_filter::apply(const image_data& imageData) const {
+  bw_filter bwFilter(m_rect);
+  bwFilter.apply(imageData);
+
+  convolut_filter::apply(imageData);
+}
+
+blur_filter::blur_filter(const rect& rect) : convolut_filter(rect) {}
+
+vector<vector<int>> blur_filter::getKernel() const {
+  vector<vector<int>> kernel = {
+    {1, 1, 1},
+    {1, 1, 1},
+    {1, 1, 1},
+  };
+  return kernel;
 }

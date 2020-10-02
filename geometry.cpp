@@ -88,6 +88,14 @@ rect rect::translated(const point& offset) const {
   return rect(m_topLeft + offset, m_bottomRight + offset);
 }
 
+size_t rect::width() const {
+  return right() - left();
+}
+
+size_t rect::height() const {
+  return bottom() - top();
+}
+
 istream& operator>>(istream &in, rect &rect) {
   in >> rect.m_topLeft >> rect.m_bottomRight;
   return in;
