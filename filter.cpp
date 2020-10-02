@@ -160,18 +160,18 @@ void threshold_filter::apply(const image_data& imageData) const {
 
 convolut_filter::convolut_filter(const rect& rect) : filter(rect) {}
 
-static vector<stbi_uc> calcConvolut(const image_data& imageData, const vector<vector<int>>& kernel,
+static vector<stbi_uc> calcConvolut(const image_data& imageData, const vector<vector<double>>& kernel,
                                     const point& kernelPos, const rect& rect) {
-  vector<int> convolutInt(3);
+  vector<double> convolutInt(3);
   for (int color = 0; color < 3; color++) {
     for (int i = rect.left(); i < rect.right(); i++) {
       for (int j = rect.top(); j < rect.bottom(); j++) {
         int k = mapToImage(imageData, point(i, j));
-        int weight = kernel[i - kernelPos.x()][j - kernelPos.y()];
+        double weight = kernel[i - kernelPos.x()][j - kernelPos.y()];
         convolutInt[color] += imageData.pixels[k + color] * weight;
       }
     }
-    convolutInt[color] = clamp(convolutInt[color], 0, 255);
+    convolutInt[color] = clamp(int(convolutInt[color]), 0, 255);
   }
 
   vector<stbi_uc> convolutUc(3);
@@ -196,7 +196,7 @@ static void pastePixels(const image_data& dst, const image_data& src, const poin
 }
 
 void convolut_filter::apply(const image_data& imageData) const {
-  vector<vector<int>> kernel = getKernel();
+  vector<vector<double>> kernel = getKernel();
   int halfW = kernel[0].size() / 2;
   int halfH = kernel.size() / 2;
   rect kernelRect(-halfW, -halfH, halfW + 1, halfH + 1);
@@ -230,8 +230,8 @@ void convolut_filter::apply(const image_data& imageData) const {
 
 edge_filter::edge_filter(const rect& rect) : convolut_filter(rect) {}
 
-vector<vector<int>> edge_filter::getKernel() const {
-  vector<vector<int>> kernel = {
+vector<vector<double>> edge_filter::getKernel() const {
+  vector<vector<double>> kernel = {
     {-1, -1, -1},
     {-1, 9, -1},
     {-1, -1, -1},
@@ -248,11 +248,12 @@ void edge_filter::apply(const image_data& imageData) const {
 
 blur_filter::blur_filter(const rect& rect) : convolut_filter(rect) {}
 
-vector<vector<int>> blur_filter::getKernel() const {
-  vector<vector<int>> kernel = {
-    {1, 1, 1},
-    {1, 1, 1},
-    {1, 1, 1},
+vector<vector<double>> blur_filter::getKernel() const {
+  double w = 1.0 / 9.0;
+  vector<vector<double>> kernel = {
+    {w, w, w},
+    {w, w, w},
+    {w, w, w},
   };
   return kernel;
 }
