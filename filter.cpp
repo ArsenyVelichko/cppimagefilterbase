@@ -206,7 +206,7 @@ void convolut_filter::apply(const image_data& imageData) const {
   bufData.w = scope.width();
   bufData.h = scope.height();
   bufData.compPerPixel = imageData.compPerPixel;
-  bufData.pixels = new stbi_uc[bufData.w * bufData.h * bufData.compPerPixel];
+  bufData.pixels = vector<stbi_uc>(bufData.w * bufData.h * bufData.compPerPixel).data();
 
   for (int i = scope.left(); i < scope.right(); i++) {
     for (int j = scope.top(); j < scope.bottom(); j++) {
@@ -225,7 +225,6 @@ void convolut_filter::apply(const image_data& imageData) const {
   }
 
   pastePixels(imageData, bufData, scope.topLeft());
-  delete bufData.pixels;
 }
 
 edge_filter::edge_filter(const rect& rect) : convolut_filter(rect) {}
