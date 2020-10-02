@@ -162,23 +162,26 @@ convolut_filter::convolut_filter(const rect& rect) : filter(rect) {}
 
 static vector<stbi_uc> calcConvolut(const image_data& imageData, const vector<vector<double>>& kernel,
                                     const point& kernelPos, const rect& rect) {
-  vector<double> convolutInt(3);
+  vector<stbi_uc> convolutVec(3);
   for (int color = 0; color < 3; color++) {
+
+    double convolut = 0;
+    double weightSum = 0;
     for (int i = rect.left(); i < rect.right(); i++) {
       for (int j = rect.top(); j < rect.bottom(); j++) {
         int k = mapToImage(imageData, point(i, j));
         double weight = kernel[i - kernelPos.x()][j - kernelPos.y()];
-        convolutInt[color] += imageData.pixels[k + color] * weight;
+
+        weightSum += weight;
+        convolut += imageData.pixels[k + color] * weight;
       }
     }
-    convolutInt[color] = clamp(int(convolutInt[color]), 0, 255);
+    
+    convolut /= weightSum;
+    convolutVec[color] = stbi_uc(clamp(int(convolut), 0, 255));
   }
 
-  vector<stbi_uc> convolutUc(3);
-  for (int i = 0; i < 3; i++) {
-    convolutUc[i] = stbi_uc(convolutInt[i]);
-  } 
-  return convolutUc;
+  return convolutVec;
 }
 
 static void pastePixels(const image_data& dst, const image_data& src, const point& topLeft) {
@@ -249,11 +252,10 @@ void edge_filter::apply(const image_data& imageData) const {
 blur_filter::blur_filter(const rect& rect) : convolut_filter(rect) {}
 
 vector<vector<double>> blur_filter::getKernel() const {
-  double w = 1.0 / 9.0;
   vector<vector<double>> kernel = {
-    {w, w, w},
-    {w, w, w},
-    {w, w, w},
+    {1, 1, 1},
+    {1, 1, 1},
+    {1, 1, 1},
   };
   return kernel;
 }
